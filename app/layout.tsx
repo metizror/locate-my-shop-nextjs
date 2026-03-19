@@ -86,7 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
         {/* Google Analytics 4 - keep GA4 via gtag; can also be managed via GTM if desired */}
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-NVME1QQG6G"
+          src="https://www.googletagmanager.com/gtag/js?id=G-1WZ6ETL5GR"
           strategy="afterInteractive"
         />
         <Script id="ga4-init" strategy="afterInteractive">
@@ -94,7 +94,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-NVME1QQG6G');
+            gtag('config', 'G-1WZ6ETL5GR');
           `}
         </Script>
       </head>
