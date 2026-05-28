@@ -1,17 +1,18 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 import { ArrowRight, Settings, Palette, Code, Users } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import Autoplay from "embla-carousel-autoplay";
 import Link from "next/link";
 import Image from "next/image";
-import dynamic from "next/dynamic";
-
-// Lazy load YouTube component to avoid loading 540KB of YouTube scripts until needed
-const LazyYouTube = dynamic(() => import("@/components/LazyYouTube"), {
-  ssr: false,
-});
 
 // Import logos
 const murkaniLogo = "/assets/logos/murkani-logo.png";
@@ -22,6 +23,31 @@ const CustomizeSection = () => {
   const plugin = useRef(
     Autoplay({ delay: 2000, stopOnInteraction: true })
   );
+
+  // Feature showcase carousel (replaces the old YouTube embed)
+  const showcaseImages = [
+    { src: "/assets/customize-showcase/analytics-dashboard.jpg", alt: "Analytics dashboard tracking store views and customer search patterns" },
+    { src: "/assets/customize-showcase/quick-summary-view.jpg", alt: "Quick summary view with store locator views chart over 90 days" },
+    { src: "/assets/customize-showcase/store-management.jpg", alt: "Store management dashboard with bulk CSV import/export and Google Sheets sync" },
+    { src: "/assets/customize-showcase/map-provider-setup.jpg", alt: "Map provider setup for Google Maps and MapBox with transparent pricing" },
+    { src: "/assets/customize-showcase/map-customization.jpg", alt: "Map customization settings for icon colors, radius, labels and zoom" },
+    { src: "/assets/customize-showcase/store-categories.jpg", alt: "Store categories with pre-built and custom filters" },
+  ];
+  const showcasePlugin = useRef(
+    Autoplay({ delay: 3500, stopOnInteraction: true })
+  );
+  const [showcaseApi, setShowcaseApi] = useState<CarouselApi>();
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  useEffect(() => {
+    if (!showcaseApi) return;
+    const onSelect = () => setSelectedIndex(showcaseApi.selectedScrollSnap());
+    onSelect();
+    showcaseApi.on("select", onSelect);
+    return () => {
+      showcaseApi.off("select", onSelect);
+    };
+  }, [showcaseApi]);
   // New example company logos to appear first in the carousel
   const exampleCompanyLogos = [
     { name: "BigTree", logo: "/assets/example-company-logos/BigTree-logo.png", type: "image" },
@@ -126,17 +152,54 @@ const CustomizeSection = () => {
             </div>
           </div>
 
-          {/* Right Content - Showcase Image */}
+          {/* Right Content - Feature Showcase Carousel */}
           <div className="relative">
-            <div className="relative bg-gradient-to-br from-muted/50 to-muted/80 rounded-2xl p-8 shadow-2xl">
-              <LazyYouTube
-                videoId="Mm-NuxllztU"
-                title="Store locator customization examples video"
+            <div className="relative bg-gradient-to-br from-muted/50 to-muted/80 rounded-2xl p-4 sm:p-6 shadow-2xl">
+              <Carousel
+                opts={{ align: "start", loop: true }}
+                plugins={[showcasePlugin.current]}
+                setApi={setShowcaseApi}
                 className="w-full"
-              />
+              >
+                <CarouselContent>
+                  {showcaseImages.map((img, index) => (
+                    <CarouselItem key={img.src}>
+                      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-muted shadow-lg">
+                        <Image
+                          src={img.src}
+                          alt={img.alt}
+                          fill
+                          className="object-cover"
+                          loading={index === 0 ? "eager" : "lazy"}
+                          quality={80}
+                          sizes="(max-width: 1024px) 100vw, 600px"
+                        />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-2 sm:-left-4" />
+                <CarouselNext className="right-2 sm:-right-4" />
+              </Carousel>
+
+              {/* Dot indicators */}
+              <div className="flex justify-center gap-2 mt-5">
+                {showcaseImages.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => showcaseApi?.scrollTo(i)}
+                    aria-label={`Go to slide ${i + 1}`}
+                    className={`h-2 rounded-full transition-all ${
+                      selectedIndex === i ? "w-6 bg-primary" : "w-2 bg-primary/30 hover:bg-primary/50"
+                    }`}
+                  />
+                ))}
+              </div>
+
               {/* Decorative Elements */}
-              <div className="absolute -top-4 -right-4 h-24 w-24 bg-primary/10 rounded-full blur-xl"></div>
-              <div className="absolute -bottom-6 -left-6 h-32 w-32 bg-accent/10 rounded-full blur-xl"></div>
+              <div className="absolute -top-4 -right-4 h-24 w-24 bg-primary/10 rounded-full blur-xl pointer-events-none"></div>
+              <div className="absolute -bottom-6 -left-6 h-32 w-32 bg-accent/10 rounded-full blur-xl pointer-events-none"></div>
             </div>
           </div>
         </div>

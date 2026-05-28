@@ -12,34 +12,35 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 251 45% 26%;
+    /* Brand-aligned with metizsoft.com: deep indigo #2a2273, orange #ff6000, lavender washes */
+    --background: 252 100% 99%;
+    --foreground: 246 45% 26%;
     --card: 0 0% 100%;
-    --card-foreground: 251 45% 26%;
+    --card-foreground: 246 45% 26%;
     --popover: 0 0% 100%;
-    --popover-foreground: 251 45% 26%;
-    --primary: 254 52% 29%;
+    --popover-foreground: 246 45% 26%;
+    --primary: 246 54% 29%;
     --primary-foreground: 0 0% 100%;
-    --primary-soft: 254 52% 39%;
-    --primary-glow: 254 52% 49%;
-    --secondary: 22 100% 50%;
+    --primary-soft: 246 54% 39%;
+    --primary-glow: 267 49% 45%;
+    --secondary: 23 100% 50%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 210 40% 98%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 22 100% 50%;
+    --muted: 258 100% 97%;
+    --muted-foreground: 246 16% 47%;
+    --accent: 23 100% 50%;
     --accent-foreground: 0 0% 100%;
-    --accent-soft: 22 100% 60%;
+    --accent-soft: 23 100% 60%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 254 52% 29%;
-    --hero-gradient: hsl(254, 52%, 29%);
-    --card-gradient: hsl(0, 0%, 100%);
-    --section-gradient: hsl(0, 0%, 100%);
-    --shadow-elegant: 0 10px 25px -5px hsl(254 52% 29% / 0.1), 0 8px 10px -6px hsl(254 52% 29% / 0.1);
-    --shadow-card: 0 4px 6px -1px hsl(254 52% 29% / 0.1), 0 2px 4px -2px hsl(254 52% 29% / 0.1);
-    --shadow-glow: 0 0 40px hsl(254 52% 49% / 0.3);
+    --border: 250 35% 90%;
+    --input: 250 35% 90%;
+    --ring: 246 54% 29%;
+    --hero-gradient: linear-gradient(135deg, hsl(246 54% 29%) 0%, hsl(267 49% 36%) 60%, hsl(267 49% 42%) 100%);
+    --card-gradient: linear-gradient(135deg, hsl(258 100% 97%) 0%, hsl(252 78% 93%) 100%);
+    --section-gradient: linear-gradient(160deg, hsl(255 100% 98%) 0%, hsl(252 80% 95%) 100%);
+    --shadow-elegant: 0 10px 25px -5px hsl(246 54% 29% / 0.1), 0 8px 10px -6px hsl(246 54% 29% / 0.1);
+    --shadow-card: 0 4px 6px -1px hsl(246 54% 29% / 0.1), 0 2px 4px -2px hsl(246 54% 29% / 0.1);
+    --shadow-glow: 0 0 40px hsl(267 49% 49% / 0.3);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     --radius: 0.5rem;
@@ -51,44 +52,6 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-  .dark {
-    --background: 210 40% 4%;
-    --foreground: 0 0% 98%;
-    --card: 210 40% 6%;
-    --card-foreground: 0 0% 98%;
-    --popover: 210 40% 6%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 254 52% 39%;
-    --primary-foreground: 0 0% 100%;
-    --primary-soft: 254 52% 49%;
-    --primary-glow: 254 52% 59%;
-    --secondary: 22 100% 60%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 210 40% 8%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 22 100% 60%;
-    --accent-foreground: 0 0% 100%;
-    --accent-soft: 22 100% 70%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 210 40% 12%;
-    --input: 210 40% 12%;
-    --ring: 254 52% 39%;
-    --hero-gradient: hsl(254, 52%, 39%);
-    --card-gradient: hsl(210, 40%, 6%);
-    --section-gradient: hsl(210, 40%, 4%);
-    --shadow-elegant: 0 10px 25px -5px hsl(0 0% 0% / 0.3), 0 8px 10px -6px hsl(0 0% 0% / 0.3);
-    --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.2), 0 2px 4px -2px hsl(0 0% 0% / 0.2);
-    --shadow-glow: 0 0 40px hsl(254 52% 39% / 0.4);
-    --sidebar-background: 251 45% 10%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 251 45% 26%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 22 100% 50%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 210 40% 12%;
-    --sidebar-ring: 251 45% 26%;
   }
 }
 

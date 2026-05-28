@@ -81,21 +81,6 @@
   color: hsl(var(--primary)) !important;
 }
 
-/* Dark mode adjustments */
-.dark .ql-editor {
-  color: hsl(var(--foreground)) !important;
-  background-color: hsl(var(--background)) !important;
-}
-
-.dark .ql-toolbar {
-  background-color: hsl(var(--muted)) !important;
-  border-color: hsl(var(--border)) !important;
-}
-
-.dark .ql-container {
-  border-color: hsl(var(--border)) !important;
-}
-
 /* Custom button styling */
 .ql-snow .ql-toolbar button {
   border-radius: 0.25rem !important;

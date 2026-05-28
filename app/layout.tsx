@@ -7,7 +7,6 @@ import "@/styles/quill.css";
 import type { Metadata } from "next";
 import Script from "next/script";
 import { ReactQueryClientProvider } from "@/components/providers/ReactQueryClientProvider";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -39,7 +38,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <head>
         {/* Preconnect to critical external origins for faster resource loading */}
         {/* Fonts - critical for FCP, use preconnect with crossorigin */}
@@ -73,7 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         
         {/* Mobile optimization - prevent layout shift */}
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
-        <meta name="theme-color" content="#1a1a2e" />
+        <meta name="theme-color" content="#2a2273" />
         {/* Google Tag Manager - placed as high in <head> as possible */}
         <Script id="gtm-init" strategy="afterInteractive">
           {`
@@ -109,13 +108,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         <ReactQueryClientProvider>
-          <ThemeProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <main>{children}</main>
-            </TooltipProvider>
-          </ThemeProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <main>{children}</main>
+          </TooltipProvider>
         </ReactQueryClientProvider>
       </body>
     </html>

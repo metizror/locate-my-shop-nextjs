@@ -76,11 +76,11 @@ const HeroSection = () => {
           {/* Right content - Hero Image */}
           <div className="relative animate-float mt-8 lg:mt-0">
             <div className="relative rounded-xl md:rounded-2xl overflow-hidden shadow-elegant">
-              <Image 
-                src="/lovable-uploads/ab9dfdbc-d12f-4b79-b4ba-ddf2797c0169.png" 
-                alt="Store Locator dashboard showing fully responsive design on laptop and mobile devices"
-                width={1200}
-                height={800}
+              <Image
+                src="/lovable-uploads/store-locator-hero.jpg"
+                alt="One app for all your store locator needs - find, manage and showcase your store locations on a world map"
+                width={1600}
+                height={900}
                 className="w-full h-auto object-cover"
                 priority
                 fetchPriority="high"

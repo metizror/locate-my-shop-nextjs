@@ -17,7 +17,7 @@ export default function PrivacyPolicyPage() {
           </h1>
         </header>
 
-        <div className="prose prose-neutral dark:prose-invert max-w-none space-y-10">
+        <div className="prose prose-neutral max-w-none space-y-10">
           <section>
             <h2 className="text-xl font-semibold text-foreground mb-3">WHO WE ARE?</h2>
             <p className="text-muted-foreground leading-relaxed">
