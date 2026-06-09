@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/lib/supabase/client";
 import { FileText, Users, Eye, BarChart3, Plus, ArrowRight, Calendar } from "lucide-react";
 import Link from "next/link";
 
@@ -16,11 +15,17 @@ export default function AdminDashboardPage() {
   const fetchDashboardStats = async () => {
     try {
       setLoading(true);
-      const { count: totalPosts } = await supabase.from('blog_posts').select('*', { count: 'exact', head: true });
-      const { count: publishedPosts } = await supabase.from('blog_posts').select('*', { count: 'exact', head: true }).not('published_at', 'is', null);
-      const { count: totalAuthors } = await supabase.from('blog_authors').select('*', { count: 'exact', head: true });
-      const { data: recentPosts } = await supabase.from('blog_posts').select(`*, author:blog_authors!author_id(name, avatar_url)`).order('created_at', { ascending: false }).limit(5);
-      setStats({ totalPosts: totalPosts || 0, publishedPosts: publishedPosts || 0, totalAuthors: totalAuthors || 0, totalViews: 1250, recentPosts: recentPosts || [] });
+      const [postsRes, authorsRes] = await Promise.all([
+        fetch('/api/posts', { credentials: 'include' }),
+        fetch('/api/admin/authors', { credentials: 'include' }),
+      ]);
+      const posts: any[] = postsRes.ok ? await postsRes.json() : [];
+      const authors: any[] = authorsRes.ok ? await authorsRes.json() : [];
+      const publishedPosts = posts.filter((p) => p.published_at !== null).length;
+      const recentPosts = [...posts]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5);
+      setStats({ totalPosts: posts.length, publishedPosts, totalAuthors: authors.length, totalViews: 1250, recentPosts });
     } finally {
       setLoading(false);
     }

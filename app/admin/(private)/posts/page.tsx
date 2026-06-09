@@ -14,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useBlogPosts, useBlogAuthors, BlogPost } from "@/hooks/useBlogData";
-import { supabase } from "@/lib/supabase/client";
 import { Plus, Edit, Trash2, Eye, Calendar, Upload, X } from "lucide-react";
 import { format } from "date-fns";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -72,11 +71,7 @@ export default function PostsPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-      const toSlug = (input: string) =>
-        input.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').trim();
-      const slug = toSlug(formData.slug && formData.slug.trim().length > 0 ? formData.slug : formData.title);
+      // Auth, slug, date parts, and user_id are handled server-side by the API.
 
       // Parse schema - always process it for both new and existing posts
       let seoSchemaParsed: any = null;
@@ -96,92 +91,32 @@ export default function PostsPage() {
         }
       }
 
-      // Build post data (exclude user_id for updates)
-      const basePostData: any = {
+      // The API computes slug, date parts, and user_id server-side.
+      const payload = {
         title: formData.title,
         excerpt: formData.excerpt,
         content: formData.content,
-        author_id: formData.author_id && formData.author_id.trim().length > 0 ? formData.author_id : null,
+        author_id: formData.author_id,
         image_url: formData.image_url,
-        slug,
+        slug: formData.slug,
         read_time: formData.read_time,
         seo_title: formData.seo_title,
         seo_description: formData.seo_description,
+        seo_schema: hasSchemaInput ? seoSchemaParsed : null,
         published_at: new Date(formData.published_at).toISOString(),
-        date_day: new Date(formData.published_at).getDate().toString(),
-        date_month: new Date(formData.published_at).toLocaleDateString('en-US', { month: 'short' }),
-        date_year: new Date(formData.published_at).getFullYear().toString(),
       };
 
-      // Handle seo_schema for JSONB column
-      const postData: any = { ...basePostData };
-      if (hasSchemaInput && seoSchemaParsed !== null) { postData.seo_schema = seoSchemaParsed; }
-      else { postData.seo_schema = null; }
+      const res = await fetch(
+        editingPost ? `/api/admin/posts/${editingPost.id}` : "/api/admin/posts",
+        {
+          method: editingPost ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        }
+      );
+      if (!res.ok) throw new Error((await res.json()).error || "Failed to save post");
 
-      let result;
-      let savedPost: any = null;
-
-      // Compute only changed fields for updates
-      const computeChangedFields = (): any => {
-        if (!editingPost) return postData;
-        const changed: any = {};
-        const fieldsToCompare: Array<keyof typeof postData> = [
-          "title","excerpt","content","author_id","image_url","slug","read_time",
-          "seo_title","seo_description","published_at","date_day","date_month","date_year"
-        ];
-        for (const key of fieldsToCompare) {
-          // @ts-ignore
-          const newVal = postData[key];
-          // @ts-ignore
-          const oldVal = (editingPost as any)[key];
-          const newStr = newVal instanceof Date ? newVal.toISOString() : String(newVal ?? "");
-          const oldStr = oldVal instanceof Date ? oldVal.toISOString() : String(oldVal ?? "");
-          if (newStr !== oldStr) {
-            // @ts-ignore
-            changed[key] = newVal;
-          }
-        }
-        // Handle schema comparison explicitly
-        const oldSchemaStr = editingPost.seo_schema ? JSON.stringify(editingPost.seo_schema) : null;
-        const newSchemaStr = postData.seo_schema ? JSON.stringify(postData.seo_schema) : null;
-        if (oldSchemaStr !== newSchemaStr) {
-          changed.seo_schema = postData.seo_schema;
-        }
-        return changed;
-      };
-      
-      if (editingPost) {
-        const changedData = computeChangedFields();
-        result = await supabase
-          .from('blog_posts')
-          .update(changedData)
-          .eq('id', editingPost.id)
-          .select('*');
-        
-        // If select returns empty but status is 200, fetch separately (RLS may block select)
-        if (!result.error && result.status === 200 && (!result.data || result.data.length === 0)) {
-          const { data: fetchedData } = await supabase
-            .from('blog_posts')
-            .select('*')
-            .eq('id', editingPost.id)
-            .maybeSingle();
-          if (fetchedData) savedPost = fetchedData;
-        } else if (result.data && result.data.length > 0) {
-          savedPost = result.data[0];
-        }
-      } else {
-        const insertData = { ...postData, user_id: user.id };
-        result = await supabase.from('blog_posts').insert(insertData).select('*');
-        if (result.data && result.data.length > 0) {
-          savedPost = result.data[0];
-        }
-      }
-      
-      if (result.error) {
-        console.error('Database error:', result.error);
-        throw result.error;
-      }
-      
       toast({ title: "Success", description: `Post ${editingPost ? 'updated' : 'created'} successfully!` });
       setIsDialogOpen(false);
       setEditingPost(null);
@@ -244,13 +179,16 @@ export default function PostsPage() {
     if (!file.type.startsWith('image/')) { toast({ title: "Error", description: "Please select an image file", variant: "destructive" }); return; }
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `blog-images/${fileName}`;
-      const { error: uploadError } = await supabase.storage.from('blog-media').upload(filePath, file);
-      if (uploadError) throw uploadError;
-      const { data: { publicUrl } } = supabase.storage.from('blog-media').getPublicUrl(filePath);
-      setFormData(prev => ({ ...prev, image_url: publicUrl }));
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        credentials: "include",
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+      setFormData(prev => ({ ...prev, image_url: data.url }));
       toast({ title: "Success", description: "Image uploaded successfully!" });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -262,7 +200,7 @@ export default function PostsPage() {
   const confirmDelete = (postId: string) => { setPendingDeleteId(postId); setConfirmOpen(true); };
   const handleDelete = async () => {
     if (!pendingDeleteId) return;
-    try { const { error } = await supabase.from('blog_posts').delete().eq('id', pendingDeleteId); if (error) throw error; toast({ title: "Success", description: "Post deleted successfully!" }); refetch(); }
+    try { const res = await fetch(`/api/admin/posts/${pendingDeleteId}`, { method: "DELETE", credentials: "include" }); if (!res.ok) throw new Error((await res.json()).error || "Delete failed"); toast({ title: "Success", description: "Post deleted successfully!" }); refetch(); }
     catch (error: any) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
     finally { setPendingDeleteId(null); }
   };

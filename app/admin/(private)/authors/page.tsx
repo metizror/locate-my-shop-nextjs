@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useBlogAuthors, BlogAuthor } from "@/hooks/useBlogData";
-import { supabase } from "@/lib/supabase/client";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Plus, Edit, Trash2, Twitter, Linkedin, Facebook } from "lucide-react";
 
@@ -27,10 +26,16 @@ export default function AuthorsPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      let result;
-      if (editingAuthor) result = await supabase.from('blog_authors').update(formData).eq('id', editingAuthor.id);
-      else result = await supabase.from('blog_authors').insert(formData);
-      if ((result as any).error) throw (result as any).error;
+      const res = await fetch(
+        editingAuthor ? `/api/admin/authors/${editingAuthor.id}` : "/api/admin/authors",
+        {
+          method: editingAuthor ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(formData),
+        }
+      );
+      if (!res.ok) throw new Error((await res.json()).error || "Request failed");
       toast({ title: "Success", description: `Author ${editingAuthor ? 'updated' : 'created'} successfully!` });
       setIsDialogOpen(false);
       setEditingAuthor(null);
@@ -50,7 +55,7 @@ export default function AuthorsPage() {
   const confirmDelete = (authorId: string) => { setPendingDeleteId(authorId); setConfirmOpen(true); };
   const handleDelete = async () => {
     if (!pendingDeleteId) return;
-    try { const { error } = await supabase.from('blog_authors').delete().eq('id', pendingDeleteId); if (error) throw error; toast({ title: "Success", description: "Author deleted successfully!" }); refetch(); }
+    try { const res = await fetch(`/api/admin/authors/${pendingDeleteId}`, { method: "DELETE", credentials: "include" }); if (!res.ok) throw new Error((await res.json()).error || "Delete failed"); toast({ title: "Success", description: "Author deleted successfully!" }); refetch(); }
     catch (error: any) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
     finally { setPendingDeleteId(null); }
   };

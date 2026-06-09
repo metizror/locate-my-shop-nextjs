@@ -216,8 +216,50 @@
 .prose h3,
 .prose h4,
 .prose h5,
-.prose h6 { 
-  color: inherit !important; 
-  font-weight: bold !important; 
+.prose h6 {
+  color: inherit !important;
+  font-weight: bold !important;
+  line-height: 1.25 !important;
 }
+
+/* Vertical rhythm for article content (the `prose` utility classes are inert
+   without @tailwindcss/typography, and Tailwind's reset zeroes these margins,
+   so we set spacing/sizes explicitly to match the rich-text editor output). */
+.prose > :first-child { margin-top: 0 !important; }
+.prose > :last-child { margin-bottom: 0 !important; }
+
+.prose p {
+  color: hsl(var(--muted-foreground)) !important;
+  line-height: 1.75 !important;
+  margin-top: 0 !important;
+  margin-bottom: 1.25em !important;
+}
+
+.prose h1 { font-size: 2em !important;    margin: 1.2em 0 0.6em !important; }
+.prose h2 { font-size: 1.5em !important;  margin: 1.6em 0 0.6em !important; }
+.prose h3 { font-size: 1.25em !important; margin: 1.5em 0 0.5em !important; }
+.prose h4 { font-size: 1.1em !important;  margin: 1.4em 0 0.5em !important; }
+
+.prose a {
+  color: hsl(var(--primary)) !important;
+  text-decoration: underline !important;
+  text-underline-offset: 2px !important;
+}
+
+.prose img {
+  border-radius: 0.5rem !important;
+  margin: 1.5em 0 !important;
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.prose blockquote {
+  border-left: 3px solid hsl(var(--primary) / 0.3) !important;
+  padding-left: 1em !important;
+  margin: 1.5em 0 !important;
+  font-style: italic !important;
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.prose hr { margin: 2em 0 !important; border-color: hsl(var(--border)) !important; }
 

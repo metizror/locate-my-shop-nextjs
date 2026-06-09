@@ -1,5 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase/client";
+import { deriveExcerpt } from "@/lib/text";
+
+async function fetchJson<T = any>(url: string, allowNotFound = false): Promise<T> {
+  const res = await fetch(url, { credentials: "include" });
+  if (res.status === 404 && allowNotFound) return null as T;
+  if (!res.ok) throw new Error(`Request failed (${res.status})`);
+  return res.json();
+}
 
 export interface BlogPost {
   id: string;
@@ -38,7 +45,8 @@ export interface BlogPost {
 const normalizePost = (p: any): BlogPost => ({
   id: p.id,
   title: p.title ?? "",
-  excerpt: p.excerpt ?? "",
+  // Fall back to a derived excerpt when none was provided (e.g. heyfilo posts).
+  excerpt: (p.excerpt && String(p.excerpt).trim()) || deriveExcerpt(p.content),
   content: p.content ?? "",
   image_url: p.image_url ?? "",
   category: p.category ?? "",
@@ -77,15 +85,7 @@ export const useBlogPosts = () => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['blog-posts'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select(`
-          *,
-          author:blog_authors!author_id(*)
-        `)
-        .order('published_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchJson<any[]>('/api/posts');
       return (data || []).map(normalizePost);
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -107,17 +107,11 @@ export const useBlogPost = (slug: string) => {
       if (!slug) return null;
       let decodedSlug = slug;
       try { decodedSlug = decodeURIComponent(slug); } catch {}
-      
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select(`
-          *,
-          author:blog_authors!author_id(*)
-        `)
-        .eq('slug', decodedSlug)
-        .maybeSingle();
 
-      if (error) throw error;
+      const data = await fetchJson(
+        `/api/posts/${encodeURIComponent(decodedSlug)}`,
+        true
+      );
       return data ? normalizePost(data) : null;
     },
     enabled: !!slug, // Only run query if slug exists
@@ -136,12 +130,7 @@ export const useBlogAuthors = () => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['blog-authors'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blog_authors')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
+      const data = await fetchJson<any[]>('/api/admin/authors');
       return (data || []).map((a: any) => ({
         id: a.id,
         name: a.name ?? "",

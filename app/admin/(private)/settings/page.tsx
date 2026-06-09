@@ -9,7 +9,6 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase/client";
 import { Save, Globe, Mail, Shield, BarChart3 } from "lucide-react";
 
 interface BlogSettings { siteName: string; siteDescription: string; siteUrl: string; contactEmail: string; socialLinks: { twitter: string; facebook: string; linkedin: string; instagram: string; }; seoSettings: { metaTitle: string; metaDescription: string; ogImage: string; }; emailSettings: { enableNewsletter: boolean; smtpHost: string; smtpPort: string; smtpUser: string; }; commentSettings: { enableComments: boolean; moderateComments: boolean; allowAnonymous: boolean; }; analyticsSettings: { googleAnalyticsId: string; enableTracking: boolean; }; }
@@ -25,10 +24,9 @@ export default function SettingsPage() {
   const loadSettings = async () => {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
-      const { data: settingsData, error } = await supabase.from('blog_settings').select('*').eq('user_id', user.id).single();
-      if (error && (error as any).code !== 'PGRST116') throw error;
+      const res = await fetch('/api/admin/settings', { credentials: 'include' });
+      if (!res.ok) { setLoading(false); return; }
+      const settingsData = await res.json();
       if (settingsData) {
         setSettings({
           siteName: settingsData.site_name ?? "",
@@ -52,14 +50,9 @@ export default function SettingsPage() {
   const saveSettings = async () => {
     try {
       setSaving(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { toast({ title: "Sign in required", description: "Please log in to save changes.", variant: "destructive" }); return; }
-      const settingsData = { user_id: user.id, site_name: settings.siteName, site_description: settings.siteDescription, site_url: settings.siteUrl, contact_email: settings.contactEmail, social_links: settings.socialLinks, seo_settings: settings.seoSettings, email_settings: settings.emailSettings, comment_settings: settings.commentSettings, analytics_settings: settings.analyticsSettings };
-      const { data: existing } = await supabase.from('blog_settings').select('user_id').eq('user_id', user.id).maybeSingle();
-      let error = null as any;
-      if (existing) { const { error: updateError } = await supabase.from('blog_settings').update(settingsData).eq('user_id', user.id); error = updateError; }
-      else { const { error: insertError } = await supabase.from('blog_settings').insert(settingsData); error = insertError; }
-      if (error) throw error;
+      const settingsData = { site_name: settings.siteName, site_description: settings.siteDescription, site_url: settings.siteUrl, contact_email: settings.contactEmail, social_links: settings.socialLinks, seo_settings: settings.seoSettings, email_settings: settings.emailSettings, comment_settings: settings.commentSettings, analytics_settings: settings.analyticsSettings };
+      const res = await fetch('/api/admin/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(settingsData) });
+      if (!res.ok) throw new Error((await res.json()).error || 'Failed to save');
       toast({ title: "Settings Saved", description: "Your blog settings have been updated successfully." });
     } catch (error: any) {
       toast({ title: "Error", description: error.message || "Failed to save settings. Please try again.", variant: "destructive" });

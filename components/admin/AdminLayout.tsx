@@ -3,8 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/lib/supabase/client";
-import { 
+import {
   Menu, 
   X, 
   LayoutDashboard, 
@@ -33,35 +32,27 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    return () => subscription.unsubscribe();
+    // Confirm the session (middleware already gates access server-side).
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : { user: null }))
+      .then((data) => setUser(data.user ?? null))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+      router.replace("/admin/login");
+    } catch {
       toast({
         title: "Error",
         description: "Failed to logout. Please try again.",
         variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Logged Out",
-        description: "You have been successfully logged out.",
       });
     }
   };

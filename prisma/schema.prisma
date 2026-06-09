@@ -1,0 +1,99 @@
+// Prisma schema for the Store Locator marketing site (MySQL).
+// Field names intentionally mirror the snake_case column names the app already
+// uses (image_url, author_id, ...) so the API layer needs no key remapping.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model BlogPost {
+  id               String    @id @default(uuid()) @db.Char(36)
+  title            String    @db.VarChar(512)
+  slug             String?   @unique @db.VarChar(255)
+  excerpt          String?   @db.Text
+  content          String?   @db.LongText
+  image_url        String?   @db.Text
+  category         String?   @db.VarChar(255)
+  read_time        String?   @db.VarChar(50)
+  author_id        String?   @db.Char(36)
+  user_id          String?   @db.Char(36)
+  seo_title        String?   @db.VarChar(255)
+  seo_description  String?   @db.Text
+  seo_schema       Json?
+  date_day         String?   @db.VarChar(16)
+  date_month       String?   @db.VarChar(16)
+  date_year        String?   @db.VarChar(16)
+  heyfilo_post_id  String?   @unique @db.VarChar(191)
+  heyfilo_event_id String?   @unique @db.VarChar(191)
+  published_at     DateTime?
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @default(now()) @updatedAt
+
+  author BlogAuthor? @relation(fields: [author_id], references: [id], onDelete: SetNull)
+
+  @@index([author_id])
+  @@index([published_at])
+  @@map("blog_posts")
+}
+
+model BlogAuthor {
+  id           String   @id @default(uuid()) @db.Char(36)
+  name         String   @db.VarChar(255)
+  bio          String?  @db.Text
+  avatar_url   String?  @db.Text
+  twitter_url  String?  @db.Text
+  linkedin_url String?  @db.Text
+  facebook_url String?  @db.Text
+  created_at   DateTime @default(now())
+  updated_at   DateTime @default(now()) @updatedAt
+
+  posts BlogPost[]
+
+  @@map("blog_authors")
+}
+
+model BlogSettings {
+  id                 String   @id @default(uuid()) @db.Char(36)
+  user_id            String   @unique @db.Char(36)
+  site_name          String   @default("My Blog") @db.VarChar(255)
+  site_description   String?  @db.Text
+  site_url           String?  @db.Text
+  contact_email      String?  @db.VarChar(255)
+  social_links       Json?
+  seo_settings       Json?
+  email_settings     Json?
+  comment_settings   Json?
+  analytics_settings Json?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @default(now()) @updatedAt
+
+  @@map("blog_settings")
+}
+
+model BlogAnalytics {
+  id         String   @id @default(uuid()) @db.Char(36)
+  post_id    String   @db.Char(36)
+  event_type String   @db.VarChar(100)
+  user_id    String?  @db.Char(36)
+  ip_address String?  @db.VarChar(64)
+  user_agent String?  @db.Text
+  created_at DateTime @default(now())
+
+  @@index([post_id])
+  @@map("blog_analytics")
+}
+
+model AdminUser {
+  id            String   @id @default(uuid()) @db.Char(36)
+  email         String   @unique @db.VarChar(255)
+  password_hash String   @db.VarChar(255)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now()) @updatedAt
+
+  @@map("admin_users")
+}

@@ -45,15 +45,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         
-        {/* Supabase - critical for API calls, preconnect for 400ms LCP savings */}
-        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
-          <link 
-            rel="preconnect" 
-            href={new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin}
-            crossOrigin="anonymous"
-          />
-        )}
-        
         {/* Preconnect to same origin for faster CSS/JS loading - only in production */}
         {process.env.NODE_ENV === 'production' && (
           <link 

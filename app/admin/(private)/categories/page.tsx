@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase/client";
 import { Plus, Edit, Trash2, Tag, FileText } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
@@ -30,8 +29,9 @@ export default function CategoriesPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const { data: posts, error } = await supabase.from('blog_posts').select('category').not('category', 'is', null);
-      if (error) throw error;
+      const res = await fetch('/api/posts', { credentials: 'include' });
+      if (!res.ok) throw new Error('Failed to fetch posts');
+      const posts = await res.json();
       const categoryMap = new Map<string, number>();
       posts?.forEach((post: any) => { if (post.category) { categoryMap.set(post.category, (categoryMap.get(post.category) || 0) + 1); } });
       const categoryList: Category[] = Array.from(categoryMap.entries()).map(([name, count], index) => ({

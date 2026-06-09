@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/lib/supabase/client";
 import { BarChart3, TrendingUp, Eye, Users, MessageCircle, Calendar, Globe, Smartphone, Monitor, Tablet } from "lucide-react";
 
 interface AnalyticsData { totalViews: number; uniqueVisitors: number; totalComments: number; averageReadTime: string; topPosts: any[]; recentActivity: any[]; deviceStats: { desktop: number; mobile: number; tablet: number; }; trafficSources: { direct: number; search: number; social: number; referral: number; }; }
@@ -20,8 +19,13 @@ export default function AnalyticsPage() {
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true);
-      const { data: analytics } = await supabase.from('blog_analytics').select('*').order('created_at', { ascending: false });
-      const { data: posts } = await supabase.from('blog_posts').select('id,title,image_url,category,created_at,author:blog_authors!author_id(name)').order('created_at', { ascending: false }).limit(5);
+      const [analyticsRes, postsRes] = await Promise.all([
+        fetch('/api/admin/analytics', { credentials: 'include' }),
+        fetch('/api/posts', { credentials: 'include' }),
+      ]);
+      const analytics = analyticsRes.ok ? await analyticsRes.json() : [];
+      const allPosts = postsRes.ok ? await postsRes.json() : [];
+      const posts = allPosts.slice(0, 5);
       setAnalyticsData({ totalViews: 12540, uniqueVisitors: 8920, totalComments: analytics?.length || 0, averageReadTime: "3m 24s", topPosts: posts || [], recentActivity: analytics?.slice(0, 10) || [], deviceStats: { desktop: 65, mobile: 28, tablet: 7 }, trafficSources: { direct: 45, search: 35, social: 15, referral: 5 } });
     } finally { setLoading(false); }
   };

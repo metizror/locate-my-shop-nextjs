@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import BlogDetailPage from "@/components/blog/BlogDetailPage";
-import { createServerClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/db";
 
 // Force dynamic rendering to ensure schema updates appear immediately
 // This prevents static generation caching that would hide schema updates
@@ -10,13 +10,8 @@ export const revalidate = 0;
 type Params = { params: { slug: string } };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const supabase = createServerClient();
   const slug = decodeURIComponent(params.slug);
-  const { data } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .eq('slug', slug)
-    .maybeSingle();
+  const data = await prisma.blogPost.findUnique({ where: { slug } });
   if (!data) return { title: "Article | MSPL Store Locator" };
   const seoTitle = (data as any)?.seo_title ?? data.title;
   const seoDescription = (data as any)?.seo_description ?? data.excerpt ?? undefined;
@@ -34,13 +29,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function BlogPostPage({ params }: Params) {
-  const supabase = createServerClient();
   const slug = decodeURIComponent(params.slug);
-  const { data } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .eq('slug', slug)
-    .maybeSingle();
+  const data = await prisma.blogPost.findUnique({ where: { slug } });
 
   const schema = (data as any)?.seo_schema;
   
