@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/db";
-import { downloadImageToLocal } from "@/lib/storage";
+import { rehostRemoteImage, rehostImagesInHtml } from "@/lib/media";
 import { slugify, ensureUniqueSlug, dateParts } from "@/lib/blog-helpers";
 import { deriveExcerpt } from "@/lib/text";
 
@@ -153,25 +153,31 @@ export async function POST(req: NextRequest) {
         where: { heyfilo_post_id: postId },
       });
 
-      // 4c. Re-host images (hero + inline) to local disk, rewriting body HTML.
-      let body: string = post.body || "";
-      let imageUrl: string | null = post.heroImage?.url || null;
-      if (imageUrl) imageUrl = await downloadImageToLocal(imageUrl);
-
-      if (Array.isArray(post.inlineImages)) {
-        for (const img of post.inlineImages) {
-          if (!img?.url) continue;
-          const rehosted = await downloadImageToLocal(img.url);
-          if (rehosted !== img.url) body = body.split(img.url).join(rehosted);
-        }
-      }
-
-      // 4d. Resolve author + unique slug + date parts.
+      // 4c. Resolve author + unique slug + date parts.
       const authorId = await resolveAuthorId(post.author);
       const slug = await ensureUniqueSlug(
         slugify(post.slug || post.title),
         existing?.id
       );
+
+      // 4d. Re-host images (hero + inline + body <img>) to the local media dir,
+      // rewriting every remote URL to a `/media/...` path on this site.
+      // Filenames are SEO-friendly (slug + URL hash) and idempotent on retry.
+      let body: string = post.body || "";
+      let imageUrl: string | null = post.heroImage?.url || null;
+      if (imageUrl) imageUrl = await rehostRemoteImage(imageUrl, `${slug}-hero`);
+
+      if (Array.isArray(post.inlineImages)) {
+        for (let i = 0; i < post.inlineImages.length; i++) {
+          const img = post.inlineImages[i];
+          if (!img?.url) continue;
+          const rehosted = await rehostRemoteImage(img.url, `${slug}-inline-${i}`);
+          if (rehosted !== img.url) body = body.split(img.url).join(rehosted);
+        }
+      }
+
+      // Catch any remaining remote <img src> inside the body HTML.
+      body = await rehostImagesInHtml(body, slug);
       const publishedAt = post.publishedAt
         ? new Date(post.publishedAt)
         : new Date();

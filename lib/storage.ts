@@ -1,49 +1,23 @@
-import { promises as fs } from "fs";
-import path from "path";
-import crypto from "crypto";
+/**
+ * Back-compat shim. Image storage now lives in `lib/media.ts`, which writes to
+ * a runtime media dir OUTSIDE public/ and serves files via the dynamic route at
+ * `app/media/[...path]/route.ts` (no rebuild required). These re-exports keep
+ * existing importers working while routing everything through the new store.
+ */
+import { rehostRemoteImage } from "./media";
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads", "blog-images");
-const PUBLIC_PREFIX = "/uploads/blog-images";
-
-const EXT_BY_TYPE: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/jpg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/gif": "gif",
-  "image/svg+xml": "svg",
-  "image/avif": "avif",
-};
-
-export function extFromContentType(contentType = "", url = ""): string {
-  if (EXT_BY_TYPE[contentType]) return EXT_BY_TYPE[contentType];
-  const m = url.split("?")[0].match(/\.([a-zA-Z0-9]{2,5})$/);
-  return m ? m[1].toLowerCase() : "jpg";
-}
-
-/** Persist a buffer under public/uploads/blog-images and return its public path. */
-export async function saveImageBuffer(
-  buffer: Buffer,
-  ext: string
-): Promise<string> {
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
-  const name = `${crypto.randomBytes(12).toString("hex")}.${ext.replace(/^\./, "")}`;
-  await fs.writeFile(path.join(UPLOAD_DIR, name), buffer);
-  return `${PUBLIC_PREFIX}/${name}`;
-}
+export {
+  saveImageBuffer,
+  extFromContentType,
+  getMediaDir,
+  MEDIA_URL_PREFIX,
+} from "./media";
 
 /**
- * Download a remote image to local disk. Best-effort: returns the original URL
- * if the download or write fails.
+ * Download a remote image to the local media dir and return its `/media/...`
+ * path. Retained for compatibility; new code should prefer `rehostRemoteImage`
+ * (in `lib/media.ts`) which also accepts an SEO slug base.
  */
 export async function downloadImageToLocal(url: string): Promise<string> {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return url;
-    const contentType = res.headers.get("content-type") || "image/jpeg";
-    const buffer = Buffer.from(await res.arrayBuffer());
-    return await saveImageBuffer(buffer, extFromContentType(contentType, url));
-  } catch {
-    return url;
-  }
+  return rehostRemoteImage(url, "image");
 }

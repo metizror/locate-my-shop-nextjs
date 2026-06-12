@@ -13,3 +13,6 @@ node_modules
 .DS_Store
 .idea
 package-lock.json
+
+# Runtime media store (images received from heyfilo / admin uploads)
+/storage
