@@ -105,6 +105,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main>{children}</main>
           </TooltipProvider>
         </ReactQueryClientProvider>
+        {/* Zoho SalesIQ chatbot widget - loaded after page is interactive */}
+        <Script id="zsiq-init" strategy="afterInteractive">
+          {`window.$zoho=window.$zoho || {};$zoho.salesiq=$zoho.salesiq||{ready:function(){}}`}
+        </Script>
+        <Script
+          id="zsiqscript"
+          src="https://salesiq.zohopublic.com/widget?wc=siq552498784fd12a0133dd92b74bac529520573f8dc546601075130cfee568405d9a756a2eb4968d571f1b577ed8e25ae8"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
