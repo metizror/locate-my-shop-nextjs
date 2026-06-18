@@ -1,47 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
+import { createWebhookHandler } from "@heyfilo/sdk/next";
+import type { HeyfiloPost, HeyfiloPayload } from "@heyfilo/sdk/next";
 import { prisma } from "@/lib/db";
-import { rehostRemoteImage, rehostImagesInHtml } from "@/lib/media";
 import { slugify, ensureUniqueSlug, dateParts } from "@/lib/blog-helpers";
 import { deriveExcerpt } from "@/lib/text";
 
-// Server-to-server webhook receiver — never cache / statically optimize.
+// Server-to-server webhook receiver — never cache / statically optimize, and
+// force the Node runtime (the SDK reads/writes the local media dir via fs).
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-// --- Configuration (all optional; pick ONE auth mode in heyfilo) -------------
-const WEBHOOK_SECRET = process.env.HEYFILO_WEBHOOK_SECRET; // HMAC mode
-const BEARER_TOKEN = process.env.HEYFILO_BEARER_TOKEN; // Bearer mode
-const API_KEY = process.env.HEYFILO_API_KEY; // API key mode
 
 const PUBLIC_SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "";
 
-// --- Helpers -----------------------------------------------------------------
-
-/** Read a header, preferring the current X-Heyfilo-* name with X-WPCP-* fallback. */
-function readHeader(req: NextRequest, name: string): string {
-  return (
-    req.headers.get(`x-heyfilo-${name}`) ||
-    req.headers.get(`x-wpcp-${name}`) ||
-    ""
-  );
-}
-
-/** Constant-time HMAC-SHA256 verification of `${timestamp}.${rawBody}`. */
-function verifyHmac(
-  secret: string,
-  timestamp: string,
-  body: string,
-  signature: string
-): boolean {
-  const computed = crypto
-    .createHmac("sha256", secret)
-    .update(`${timestamp}.${body}`)
-    .digest("hex");
-  const expected = `sha256=${computed}`;
-  if (!signature || signature.length !== expected.length) return false;
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+function buildLiveUrl(slug: string): string {
+  return PUBLIC_SITE_URL ? `${PUBLIC_SITE_URL}/blog/${slug}` : `/blog/${slug}`;
 }
 
 /** Rough "N min read" estimate from HTML body (~200 wpm). */
@@ -52,7 +24,7 @@ function estimateReadTime(html: string): string {
 }
 
 /** Find an author by name (case-insensitive) or create one. Returns id or null. */
-async function resolveAuthorId(author: any): Promise<string | null> {
+async function resolveAuthorId(author: HeyfiloPost["author"]): Promise<string | null> {
   const name = author?.name?.trim();
   if (!name) return null;
 
@@ -71,157 +43,98 @@ async function resolveAuthorId(author: any): Promise<string | null> {
   return created.id;
 }
 
-function buildLiveUrl(slug: string): string {
-  return PUBLIC_SITE_URL ? `${PUBLIC_SITE_URL}/blog/${slug}` : `/blog/${slug}`;
+/**
+ * App-specific mapping. By the time this runs, the SDK has already:
+ *   - verified the HMAC signature + timestamp freshness,
+ *   - downloaded heroImage + every inlineImages[] entry into the local media
+ *     dir (HEYFILO_MEDIA_DIR), and rewritten those URLs in `post.body`,
+ *     `post.heroImage.url` and `post.inlineImages[].url` to `/media/...` paths.
+ * We only handle DB persistence, slug disambiguation, read time, SEO and
+ * idempotency-by-event here.
+ */
+async function onPost(post: HeyfiloPost, raw: HeyfiloPayload) {
+  const postId = raw.postId;
+  const eventId = raw.eventId || null;
+
+  // UPSERT by heyfilo_post_id: if heyfilo re-publishes the same post (an edit
+  // re-sent as post.created), update the existing row instead of inserting a
+  // duplicate. heyfilo_post_id is @unique, so a blind create would otherwise
+  // throw and trigger endless webhook retries.
+  const existing = postId
+    ? await prisma.blogPost.findUnique({ where: { heyfilo_post_id: postId } })
+    : null;
+
+  const authorId = await resolveAuthorId(post.author);
+  const slug = await ensureUniqueSlug(
+    slugify(post.slug || post.title),
+    existing?.id
+  );
+
+  // Images are already localized by the SDK — just read the rewritten URLs.
+  const body = post.body || "";
+  const imageUrl = post.heroImage?.url || null;
+
+  const publishedAt = post.publishedAt ? new Date(post.publishedAt) : new Date();
+  const category =
+    (Array.isArray(post.categories) && post.categories[0]) ||
+    (Array.isArray(post.tags) && post.tags[0]) ||
+    null;
+
+  const data = {
+    title: post.title,
+    slug,
+    excerpt: post.excerpt || deriveExcerpt(body) || null,
+    content: body,
+    author_id: authorId,
+    image_url: imageUrl,
+    category,
+    read_time: estimateReadTime(body),
+    seo_title: post.seo?.metaTitle || null,
+    seo_description: post.seo?.metaDescription || null,
+    published_at: publishedAt,
+    ...dateParts(publishedAt),
+    heyfilo_post_id: postId || null,
+    // Persisted so isDuplicate() below can dedupe re-deliveries by eventId.
+    heyfilo_event_id: eventId,
+  };
+
+  const saved = existing
+    ? await prisma.blogPost.update({ where: { id: existing.id }, data })
+    : await prisma.blogPost.create({ data });
+
+  // This object becomes the JSON response body returned to heyfilo.
+  return { id: saved.id, url: buildLiveUrl(slug) };
 }
 
-// --- Route -------------------------------------------------------------------
+export const POST = createWebhookHandler({
+  // Standardized on HEYFILO_SECRET (the SDK's documented name).
+  secret: process.env.HEYFILO_SECRET,
+  authType: "hmac",
+  // Reject deliveries whose signed timestamp is older than 5 minutes.
+  timestampToleranceSec: 300,
 
-export async function POST(req: NextRequest) {
-  const rawBody = await req.text();
+  onTest: () => {
+    console.log("[heyfilo-webhook] connection.test received");
+  },
 
-  const eventType = readHeader(req, "event-type");
-  const timestamp = readHeader(req, "timestamp");
-  const signature = readHeader(req, "signature");
-  const eventId = readHeader(req, "event-id");
+  onPost,
 
-  // 1. Authenticate based on whichever mode is configured.
-  if (WEBHOOK_SECRET) {
-    if (!verifyHmac(WEBHOOK_SECRET, timestamp, rawBody, signature)) {
-      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-    }
-    if (timestamp) {
-      const age = Math.abs(Date.now() / 1000 - Number(timestamp));
-      if (Number.isFinite(age) && age > 300) {
-        return NextResponse.json({ error: "Request too old" }, { status: 408 });
-      }
-    }
-  } else if (BEARER_TOKEN) {
-    if (req.headers.get("authorization") !== `Bearer ${BEARER_TOKEN}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  } else if (API_KEY) {
-    if (req.headers.get("x-api-key") !== API_KEY) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  }
-
-  // 2. Parse payload.
-  let payload: any;
-  try {
-    payload = JSON.parse(rawBody);
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
-  const event = eventType || payload?.event || "";
-
-  // 3. Test ping — acknowledge without saving anything.
-  if (event === "connection.test") {
-    return NextResponse.json({ success: true });
-  }
-
-  // 4. Post creation.
-  if (event === "post.created") {
-    const post = payload?.post;
-    const postId: string = payload?.postId;
-    const deliveryId = eventId || payload?.eventId || "";
-
-    if (!post || !postId) {
-      return NextResponse.json(
-        { error: "Missing post or postId" },
-        { status: 400 }
-      );
-    }
-
-    try {
-      // 4a. Idempotency — same delivery already processed?
-      if (deliveryId) {
-        const dup = await prisma.blogPost.findUnique({
-          where: { heyfilo_event_id: deliveryId },
-        });
-        if (dup) {
-          return NextResponse.json({
-            id: dup.id,
-            url: buildLiveUrl(dup.slug || post.slug),
-          });
-        }
-      }
-
-      // 4b. Is this an update of a post we already have?
-      const existing = await prisma.blogPost.findUnique({
-        where: { heyfilo_post_id: postId },
-      });
-
-      // 4c. Resolve author + unique slug + date parts.
-      const authorId = await resolveAuthorId(post.author);
-      const slug = await ensureUniqueSlug(
-        slugify(post.slug || post.title),
-        existing?.id
-      );
-
-      // 4d. Re-host images (hero + inline + body <img>) to the local media dir,
-      // rewriting every remote URL to a `/media/...` path on this site.
-      // Filenames are SEO-friendly (slug + URL hash) and idempotent on retry.
-      let body: string = post.body || "";
-      let imageUrl: string | null = post.heroImage?.url || null;
-      if (imageUrl) imageUrl = await rehostRemoteImage(imageUrl, `${slug}-hero`);
-
-      if (Array.isArray(post.inlineImages)) {
-        for (let i = 0; i < post.inlineImages.length; i++) {
-          const img = post.inlineImages[i];
-          if (!img?.url) continue;
-          const rehosted = await rehostRemoteImage(img.url, `${slug}-inline-${i}`);
-          if (rehosted !== img.url) body = body.split(img.url).join(rehosted);
-        }
-      }
-
-      // Catch any remaining remote <img src> inside the body HTML.
-      body = await rehostImagesInHtml(body, slug);
-      const publishedAt = post.publishedAt
-        ? new Date(post.publishedAt)
-        : new Date();
-      const category =
-        (Array.isArray(post.categories) && post.categories[0]) ||
-        (Array.isArray(post.tags) && post.tags[0]) ||
-        null;
-
-      const data = {
-        title: post.title,
-        slug,
-        excerpt: post.excerpt || deriveExcerpt(body) || null,
-        content: body,
-        author_id: authorId,
-        image_url: imageUrl,
-        category,
-        read_time: estimateReadTime(body),
-        seo_title: post.seo?.metaTitle || null,
-        seo_description: post.seo?.metaDescription || null,
-        published_at: publishedAt,
-        ...dateParts(publishedAt),
-        heyfilo_post_id: postId,
-        heyfilo_event_id: deliveryId || null,
-      };
-
-      const saved = existing
-        ? await prisma.blogPost.update({ where: { id: existing.id }, data })
-        : await prisma.blogPost.create({ data });
-
-      return NextResponse.json({ id: saved.id, url: buildLiveUrl(slug) });
-    } catch (err: any) {
-      console.error("[heyfilo-webhook] processing error:", err?.message || err);
-      return NextResponse.json(
-        { error: "Failed to ingest post" },
-        { status: 500 }
-      );
-    }
-  }
-
-  // Unknown / future event types — ack so heyfilo doesn't retry.
-  return NextResponse.json({ success: true });
-}
+  // Idempotency (eventId-only): the SDK calls isDuplicate() before onPost and
+  // markProcessed() after. We persist the eventId as part of onPost (above), so
+  // isDuplicate just checks for an existing row and markProcessed is a no-op.
+  isDuplicate: async (eventId: string) => {
+    if (!eventId) return false;
+    const dup = await prisma.blogPost.findUnique({
+      where: { heyfilo_event_id: eventId },
+    });
+    return Boolean(dup);
+  },
+  markProcessed: () => {
+    /* eventId is persisted inside onPost via heyfilo_event_id */
+  },
+});
 
 // Some webhook configurators send a GET/HEAD health check first.
 export async function GET() {
-  return NextResponse.json({ ok: true, receiver: "heyfilo-webhook" });
+  return Response.json({ ok: true, receiver: "heyfilo-webhook" });
 }
