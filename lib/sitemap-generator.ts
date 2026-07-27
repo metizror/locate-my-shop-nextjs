@@ -13,7 +13,7 @@ interface SitemapIndexEntry {
 export class SitemapGenerator {
   private baseUrl: string;
 
-  constructor(baseUrl: string = 'https://storelocator.in') {
+  constructor(baseUrl: string = 'https://www.storelocator.in') {
     this.baseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
     console.log('SitemapGenerator baseUrl:', this.baseUrl);
   }
@@ -129,4 +129,4 @@ ${urls.map(url =>
   }
 }
 
-export const sitemapGenerator = new SitemapGenerator('https://storelocator.in');
+export const sitemapGenerator = new SitemapGenerator('https://www.storelocator.in');

@@ -10,6 +10,7 @@ import { ReactQueryClientProvider } from "@/components/providers/ReactQueryClien
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { getSiteBaseUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: {
@@ -18,12 +19,10 @@ export const metadata: Metadata = {
   },
   description:
     "Metizsoft's Shopify app helps customers find stores quickly with custom maps, bulk uploads, and mobile-friendly design. Ideal for businesses needing efficient store location solutions.",
-  metadataBase:
-    process.env.NEXT_PUBLIC_SITE_URL
-      ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
-      : process.env.VERCEL_URL
-      ? new URL(`https://${process.env.VERCEL_URL}`)
-      : new URL("http://localhost:3000"),
+  // Canonical base for all metadata/canonical URLs. getSiteBaseUrl() enforces
+  // the canonical www host, so relative `alternates.canonical` values resolve
+  // to www.storelocator.in site-wide (matching the apex->www 301 redirect).
+  metadataBase: new URL(getSiteBaseUrl()),
   icons: {
     icon: "/lovable-uploads/e38b2a7e-a356-4be7-a266-c52662189454.png",
     apple: "/lovable-uploads/e38b2a7e-a356-4be7-a266-c52662189454.png",
@@ -47,9 +46,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         
         {/* Preconnect to same origin for faster CSS/JS loading - only in production */}
         {process.env.NODE_ENV === 'production' && (
-          <link 
-            rel="preconnect" 
-            href={process.env.NEXT_PUBLIC_SITE_URL || "https://www.storelocator.in"} 
+          <link
+            rel="preconnect"
+            href={getSiteBaseUrl()}
           />
         )}
         

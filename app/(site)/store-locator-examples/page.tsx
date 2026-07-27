@@ -236,7 +236,7 @@ export default function StoreLocatorExamples() {
                   Get started today with our easy-to-use platform and customizable design options.
                 </p>
                 <Button size="lg" className="bg-primary hover:bg-primary/90" asChild>
-                  <a href="https://storelocator.in/contact" target="_blank" rel="noopener noreferrer">
+                  <a href="https://www.storelocator.in/contact" target="_blank" rel="noopener noreferrer">
                     Start Building Your Store Locator
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </a>

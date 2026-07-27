@@ -51,7 +51,7 @@ const CTASection = () => {
               className="bg-background text-foreground hover:bg-background/90 shadow-elegant"
               asChild
             >
-              <a href="https://storelocator.in/contact" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.storelocator.in/contact" target="_blank" rel="noopener noreferrer">
                 Schedule Demo
               </a>
             </Button>
