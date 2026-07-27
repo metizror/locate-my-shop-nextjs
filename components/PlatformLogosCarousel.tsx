@@ -32,13 +32,24 @@ export default function PlatformLogosCarousel() {
         className="w-full"
       >
         <CarouselContent className="-ml-2 md:-ml-4">
-          {platformLogos.map((src) => (
+          {platformLogos.map((src) => {
+            // Derive a readable platform name from the file name so each logo
+            // gets a specific alt (e.g. "Shopify logo") for a11y / SEO.
+            const platformName = src
+              .split("/")
+              .pop()!
+              .replace(/\.\w+$/, "")
+              .replace(/[-_]?logo[-_]?\d*$/i, "")
+              .replace(/[-_]+/g, " ")
+              .trim()
+              .replace(/\b\w/g, (c) => c.toUpperCase());
+            return (
             <CarouselItem key={src} className="pl-2 md:pl-4 basis-1/3 md:basis-1/4 lg:basis-1/5">
               <div className="flex items-center justify-center h-16">
                 <div className="relative h-8 w-32 flex items-center justify-center">
                   <Image
                     src={src}
-                    alt="Platform logo"
+                    alt={`${platformName || "Platform"} logo`}
                     width={128}
                     height={32}
                     className="max-h-8 max-w-full object-contain opacity-60 hover:opacity-100 transition-opacity cursor-pointer filter grayscale hover:grayscale-0"
@@ -49,7 +60,8 @@ export default function PlatformLogosCarousel() {
                 </div>
               </div>
             </CarouselItem>
-          ))}
+            );
+          })}
         </CarouselContent>
       </Carousel>
     </div>

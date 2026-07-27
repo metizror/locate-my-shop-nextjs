@@ -6,7 +6,6 @@ import {
 } from "@/components/ui/collapsible";
 import { HelpCircle, ChevronDown } from "lucide-react";
 import { useState } from "react";
-import Script from "next/script";
 
 const faqs = [
   {
@@ -99,7 +98,10 @@ const FAQSection = () => {
 
   return (
     <section className="py-[10px] bg-gradient-to-b from-background to-muted/30">
-      <Script id="faq-schema" type="application/ld+json" strategy="afterInteractive"
+      {/* Server-rendered JSON-LD so all crawlers (not just JS-rendering ones)
+          see the FAQ structured data in the initial HTML. */}
+      <script
+        type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <div className="container mx-auto px-4 pt-[20px]">
