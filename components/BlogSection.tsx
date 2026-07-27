@@ -4,11 +4,38 @@ import { Button } from "@/components/ui/button";
 import { Calendar, ArrowRight, BookOpen, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useBlogPosts } from "@/hooks/useBlogData";
+import { useBlogPosts, type BlogPost } from "@/hooks/useBlogData";
 
-const BlogSection = () => {
+// Fields needed to render a blog card. Server-fetched posts (a subset of the
+// full BlogPost) satisfy this, so the links can be rendered in the initial HTML.
+type BlogCardPost = Pick<
+  BlogPost,
+  | "id"
+  | "slug"
+  | "title"
+  | "excerpt"
+  | "image_url"
+  | "category"
+  | "date_day"
+  | "date_month"
+  | "date_year"
+  | "read_time"
+>;
+
+interface BlogSectionProps {
+  /** Server-rendered initial posts so crawlers see the links without JS. */
+  initialPosts?: BlogCardPost[];
+}
+
+const BlogSection = ({ initialPosts = [] }: BlogSectionProps) => {
   const { posts, loading, error } = useBlogPosts();
-  const latestPosts = posts.slice(0, 3);
+  // Prefer freshly-fetched posts once available; otherwise use the server-rendered
+  // initial posts (present in SSR/initial HTML).
+  const source: BlogCardPost[] = posts.length ? posts : initialPosts;
+  const latestPosts = source.slice(0, 3);
+  // Only show the loading/error states when we have nothing to render yet.
+  const showLoading = loading && initialPosts.length === 0;
+  const showError = !!error && initialPosts.length === 0 && latestPosts.length === 0;
   return (
     <section className="py-[10px] bg-gradient-to-b from-muted/30 to-background">
       <div className="container mx-auto px-4 pt-[20px]">
@@ -30,17 +57,17 @@ const BlogSection = () => {
 
           {/* Blog Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {loading && (
+            {showLoading && (
               <div className="col-span-full flex items-center justify-center py-8 text-muted-foreground">
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" /> Loading latest articles...
               </div>
             )}
-            {error && (
+            {showError && (
               <div className="col-span-full text-center text-sm text-destructive">
                 Failed to load articles. Please try again later.
               </div>
             )}
-            {!loading && !error && latestPosts.map((post) => (
+            {!showLoading && !showError && latestPosts.map((post) => (
               <Card key={post.id} className="gradient-card border-0 shadow-elegant hover:shadow-card transition-smooth group overflow-hidden relative cursor-pointer">
                 <Link href={`/blog/${post.slug}`} className="absolute inset-0 z-10" aria-label={post.title} />
                 <div className="relative">

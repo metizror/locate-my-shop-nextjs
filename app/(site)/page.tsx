@@ -1,7 +1,13 @@
 import dynamic from "next/dynamic";
 import { pageSeo } from "@/lib/seo";
+import { prisma } from "@/lib/db";
+import { deriveExcerpt } from "@/lib/text";
 import HeroSection from "@/components/HeroSection";
 import CustomizeSection from "@/components/CustomizeSection";
+
+// Re-generate the homepage periodically so the blog cards (rendered server-side
+// below) stay fresh without making every request hit the DB.
+export const revalidate = 600;
 
 // Dynamically import below-the-fold components to reduce initial bundle size
 const FeaturesSection = dynamic(() => import("@/components/FeaturesSection"), {
@@ -39,7 +45,40 @@ export const metadata = pageSeo({
   path: "/",
 });
 
-export default function Page() {
+export default async function Page() {
+  // Fetch the latest posts on the server so their links are in the initial HTML
+  // (crawlers see the blog links directly, not a client-side "Loading..." state).
+  const rawLatest = await prisma.blogPost.findMany({
+    where: { slug: { not: null } },
+    orderBy: [{ published_at: "desc" }, { created_at: "desc" }],
+    take: 3,
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      excerpt: true,
+      content: true,
+      image_url: true,
+      category: true,
+      read_time: true,
+      date_day: true,
+      date_month: true,
+      date_year: true,
+    },
+  });
+  const latestPosts = rawLatest.map((p) => ({
+    id: p.id,
+    slug: p.slug ?? "",
+    title: p.title ?? "",
+    excerpt: (p.excerpt && p.excerpt.trim()) || deriveExcerpt(p.content),
+    image_url: p.image_url ?? "",
+    category: p.category ?? "",
+    read_time: p.read_time ?? "",
+    date_day: p.date_day ?? "",
+    date_month: p.date_month ?? "",
+    date_year: p.date_year ?? "",
+  }));
+
   const siteUrlFromEnv = process.env.NEXT_PUBLIC_SITE_URL;
   const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined;
   const baseUrl = siteUrlFromEnv || vercelUrl || 'http://localhost:3000';
@@ -129,7 +168,7 @@ export default function Page() {
           <FAQSection />
         </section>
         <section id="blog" className="my-[15px] scroll-mt-28">
-          <BlogSection />
+          <BlogSection initialPosts={latestPosts} />
         </section>
         <div className="my-[15px]">
           <CTASection />
