@@ -3,13 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { pageSeo } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Best Shopify Store Locator App - Find Stores Easily | Metizsoft",
   description:
     "Enhance customer experience with a Shopify store locator app offering custom maps, bulk uploads, and mobile-friendly design. Helps users quickly find physical store locations.",
-  alternates: { canonical: "/features" },
-};
+  path: "/features",
+});
 
 export default function FeaturesPage() {
   const featureCategories = [

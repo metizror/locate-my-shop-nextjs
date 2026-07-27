@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { pageSeo } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "MSPL Store Locator – Privacy Policy",
   description:
     "Your data matters at StoreLocator.in. Review our Privacy Policy to understand information collection and protection practices.",
-  alternates: { canonical: "/privacy-policy" },
-};
+  path: "/privacy-policy",
+});
 
 export default function PrivacyPolicyPage() {
   return (

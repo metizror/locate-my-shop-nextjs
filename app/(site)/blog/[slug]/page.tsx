@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import BlogDetailPage from "@/components/blog/BlogDetailPage";
 import { prisma } from "@/lib/db";
+import { pageSeo } from "@/lib/seo";
 
 // Force dynamic rendering to ensure schema updates appear immediately
 // This prevents static generation caching that would hide schema updates
@@ -15,17 +16,15 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   if (!data) return { title: "Article | MSPL Store Locator" };
   const seoTitle = (data as any)?.seo_title ?? data.title;
   const seoDescription = (data as any)?.seo_description ?? data.excerpt ?? undefined;
-  return {
+  // Use the post's hero image for the social preview when available; otherwise
+  // fall back to the site's default 1200x630 OG image (handled by pageSeo).
+  return pageSeo({
     title: seoTitle,
     description: seoDescription,
-    alternates: { canonical: `/blog/${slug}` },
-    openGraph: {
-      type: 'article',
-      title: seoTitle,
-      description: seoDescription,
-      images: data.image_url ? [{ url: data.image_url as string }] : undefined,
-    }
-  };
+    path: `/blog/${slug}`,
+    image: (data.image_url as string) || undefined,
+    type: "article",
+  });
 }
 
 export default async function BlogPostPage({ params }: Params) {

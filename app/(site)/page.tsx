@@ -1,5 +1,6 @@
 import dynamic from "next/dynamic";
 import Script from "next/script";
+import { pageSeo } from "@/lib/seo";
 import HeroSection from "@/components/HeroSection";
 import CustomizeSection from "@/components/CustomizeSection";
 
@@ -32,12 +33,12 @@ const ScrollToHash = dynamic(() => import("@/components/ScrollToHash"), {
   ssr: false,
 });
 
-export const metadata = {
+export const metadata = pageSeo({
   title: "Custom Store Locator App with Maps, Search & Filters",
   description:
     "Help customers find stores fast with a mobile-friendly store locator app. Custom maps, bulk uploads, Google Sheet auto sync. Get started today.",
-  alternates: { canonical: "/" },
-};
+  path: "/",
+});
 
 export default function Page() {
   const siteUrlFromEnv = process.env.NEXT_PUBLIC_SITE_URL;

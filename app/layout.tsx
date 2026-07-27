@@ -11,6 +11,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { getSiteBaseUrl } from "@/lib/site";
+import { SITE_NAME, OG_IMAGE, OG_IMAGE_ALT } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: {
@@ -23,6 +24,19 @@ export const metadata: Metadata = {
   // the canonical www host, so relative `alternates.canonical` values resolve
   // to www.storelocator.in site-wide (matching the apex->www 301 redirect).
   metadataBase: new URL(getSiteBaseUrl()),
+  // Site-wide social-share defaults. Pages that define their own openGraph /
+  // twitter (via pageSeo) replace these; pages that don't (e.g. admin) still
+  // get a valid card with the default 1200x630 image.
+  openGraph: {
+    siteName: SITE_NAME,
+    type: "website",
+    locale: "en_US",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: OG_IMAGE_ALT }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: [OG_IMAGE],
+  },
   icons: {
     icon: "/lovable-uploads/e38b2a7e-a356-4be7-a266-c52662189454.png",
     apple: "/lovable-uploads/e38b2a7e-a356-4be7-a266-c52662189454.png",

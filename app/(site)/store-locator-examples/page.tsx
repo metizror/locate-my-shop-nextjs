@@ -3,26 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { pageSeo } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Best Store Locator Examples with Maps",
   description:
     "Browse live store locator examples showing maps, filters, and search. Choose a store locator app that fits your website. Explore now.",
-  alternates: { canonical: "/store-locator-examples" },
-  openGraph: {
-    title: "Best Store Locator Examples with Maps",
-    description:
-      "Browse live store locator examples showing maps, filters, and search. Choose a store locator app that fits your website. Explore now.",
-    type: "website",
-    url: "/store-locator-examples",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Best Store Locator Examples with Maps",
-    description:
-      "Browse live store locator examples showing maps, filters, and search. Choose a store locator app that fits your website. Explore now.",
-  },
-};
+  path: "/store-locator-examples",
+});
 
 const storeExamples = [
   {

@@ -3,26 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { pageSeo } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Best Store Locator Layout Examples & Designs",
   description:
     "View map-based store locator layouts and design ideas. Choose a flexible store locator app layout that fits your site. See examples now.",
-  alternates: { canonical: "/store-locator-layout" },
-  openGraph: {
-    title: "Best Store Locator Layout Examples & Designs",
-    description:
-      "View map-based store locator layouts and design ideas. Choose a flexible store locator app layout that fits your site. See examples now.",
-    type: "website",
-    url: "/store-locator-layout",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Best Store Locator Layout Examples & Designs",
-    description:
-      "View map-based store locator layouts and design ideas. Choose a flexible store locator app layout that fits your site. See examples now.",
-  },
-};
+  path: "/store-locator-layout",
+});
 
 const mapStyles = [
   {
