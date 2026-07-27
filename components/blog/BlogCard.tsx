@@ -102,12 +102,13 @@ const BlogCard = ({ post, featured = false }: BlogCardProps) => {
           </div>
         </div>
         
-        {/* Title */}
-        <h3 className={`font-bold mb-3 text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-tight ${
+        {/* Title — H2 so the listing has a proper H1 -> H2 heading hierarchy.
+            Same classes as before, so the visual size is unchanged. */}
+        <h2 className={`font-bold mb-3 text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-tight ${
           featured ? 'text-2xl lg:text-3xl' : 'text-xl'
         }`}>
           {post.title}
-        </h3>
+        </h2>
         
         {/* Excerpt */}
         <p className={`text-muted-foreground mb-6 line-clamp-3 leading-relaxed ${

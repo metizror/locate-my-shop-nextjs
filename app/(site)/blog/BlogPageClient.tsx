@@ -106,7 +106,7 @@ export default function BlogPageClient() {
                 </div>
               ) : filteredPosts.length === 0 ? (
                 <div className="text-center py-16">
-                  <h3 className="text-2xl font-semibold mb-4">No posts found</h3>
+                  <h2 className="text-2xl font-semibold mb-4">No posts found</h2>
                   <p className="text-muted-foreground mb-6">Try another search term.</p>
                 </div>
               ) : (
