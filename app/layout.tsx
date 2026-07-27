@@ -4,7 +4,7 @@ import "./globals.css";
 // This will be tree-shaken if not used, but we import it here for blog prose styles
 // Consider moving to blog layout if not needed on all pages
 import "@/styles/quill.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { ReactQueryClientProvider } from "@/components/providers/ReactQueryClientProvider";
 import { Toaster } from "@/components/ui/toaster";
@@ -55,6 +55,16 @@ export const metadata: Metadata = {
   },
 };
 
+// Single source for the viewport meta (replaces Next's default and the previous
+// manual <meta name="viewport"> in <head>, which produced a duplicate tag).
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#2a2273",
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -80,9 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="dns-prefetch" href="https://www.youtube.com" />
         <link rel="dns-prefetch" href="https://i.ytimg.com" />
         
-        {/* Mobile optimization - prevent layout shift */}
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
-        <meta name="theme-color" content="#2a2273" />
+        {/* viewport + theme-color are set via `export const viewport` above */}
         {/* Google Tag Manager - placed as high in <head> as possible */}
         <Script id="gtm-init" strategy="afterInteractive">
           {`

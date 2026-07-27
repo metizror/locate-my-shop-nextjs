@@ -252,7 +252,7 @@ const Footer = () => {
         <div className="container mx-auto px-6 py-6 max-w-7xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-sm text-muted-foreground">
-              © Metizsoft, 2025
+              © Metizsoft, {currentYear}
             </div>
             <div className="flex gap-6">
               <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">

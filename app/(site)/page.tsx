@@ -49,7 +49,7 @@ export default function Page() {
     "@graph": [
       {
         "@type": "WebSite",
-        "@id": "https://www.storelocator.in/website",
+        "@id": "https://www.storelocator.in/#website",
         "url": "https://www.storelocator.in/",
         "name": "StoreLocator.in",
         "potentialAction": {
@@ -74,7 +74,7 @@ export default function Page() {
         "@type": "WebPage",
         "@id": "https://www.storelocator.in/#webpage",
         "url": "https://www.storelocator.in/",
-        "name": "Store Locator App for Shopify | StoreLocator.in",
+        "name": "Custom Store Locator App with Maps, Search & Filters",
         "description": "Add a fully customizable store locator to your Shopify store. Display multiple locations, track searches, and help customers find the nearest outlet fast.",
         "inLanguage": "en",
         "isPartOf": {
