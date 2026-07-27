@@ -24,6 +24,12 @@ export const metadata: Metadata = {
   // the canonical www host, so relative `alternates.canonical` values resolve
   // to www.storelocator.in site-wide (matching the apex->www 301 redirect).
   metadataBase: new URL(getSiteBaseUrl()),
+  // Explicit indexing directive (best practice). Emits
+  // <meta name="robots" content="index, follow"> site-wide.
+  robots: {
+    index: true,
+    follow: true,
+  },
   // Site-wide social-share defaults. Pages that define their own openGraph /
   // twitter (via pageSeo) replace these; pages that don't (e.g. admin) still
   // get a valid card with the default 1200x630 image.
