@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import BlogDetailPage from "@/components/blog/BlogDetailPage";
 import { prisma } from "@/lib/db";
 import { pageSeo } from "@/lib/seo";
+import { buildBlogPostingSchema } from "@/lib/blog-schema";
 
 // Force dynamic rendering to ensure schema updates appear immediately
 // This prevents static generation caching that would hide schema updates
@@ -29,7 +30,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function BlogPostPage({ params }: Params) {
   const slug = decodeURIComponent(params.slug);
-  const data = await prisma.blogPost.findUnique({ where: { slug } });
+  const data = await prisma.blogPost.findUnique({
+    where: { slug },
+    include: { author: { select: { name: true } } },
+  });
 
   const schema = (data as any)?.seo_schema;
   
@@ -51,8 +55,28 @@ export default async function BlogPostPage({ params }: Params) {
     }
   }
 
+  // Auto-generate a BlogPosting schema from the post's own fields for
+  // rich-result eligibility — unless the admin-provided seo_schema already
+  // contains an Article-family type (avoid emitting a duplicate).
+  const hasArticleSchema = schemaArray.some((o: any) => {
+    const t = o?.["@type"];
+    const types = Array.isArray(t) ? t : [t];
+    return types.some(
+      (x: any) => typeof x === "string" && /(Article|BlogPosting)/i.test(x)
+    );
+  });
+  const autoPostingSchema =
+    data && !hasArticleSchema ? buildBlogPostingSchema(data) : null;
+
   return (
     <>
+      {autoPostingSchema && (
+        <script
+          type="application/ld+json"
+          // Rendered on the server so it's visible in page source
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(autoPostingSchema) }}
+        />
+      )}
       {schemaArray.length > 0 && schemaArray.map((obj: any, idx: number) => {
         // Final validation before rendering
         if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {

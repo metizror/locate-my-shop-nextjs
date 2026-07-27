@@ -9,6 +9,10 @@ export const SITE_NAME = "StoreLocator.in";
 export const OG_IMAGE = "/og-image.png";
 export const OG_IMAGE_ALT = "StoreLocator.in — Shopify Store Locator App";
 
+// Organization logo (real 1200x1200 asset used in Navbar/Footer/favicon). Used
+// as the `publisher.logo` in blog structured data.
+export const LOGO_IMAGE = "/lovable-uploads/e38b2a7e-a356-4be7-a266-c52662189454.png";
+
 type SeoInput = {
   title: string;
   description?: string;
