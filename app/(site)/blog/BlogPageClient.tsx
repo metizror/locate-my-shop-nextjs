@@ -6,7 +6,6 @@ import BlogCard from "@/components/blog/BlogCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useBlogPosts, BlogPost } from "@/hooks/useBlogData";
-import { PageLoader } from "@/components/ui/page-loader";
 
 export default function BlogPageClient() {
   const { posts, loading, error } = useBlogPosts();
@@ -34,23 +33,12 @@ export default function BlogPageClient() {
     return () => clearTimeout(timer);
   }, [posts, searchQuery]);
 
-  if (loading) { return <PageLoader message="Loading blog posts..." />; }
-
-  if (error) {
-    return (
-      <div className="min-h-screen">
-        <main className="pt-20 container mx-auto px-4 py-16 text-center">
-          <h1 className="text-3xl font-bold mb-4">Error Loading Blog</h1>
-          <p className="text-muted-foreground">{error}</p>
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen">
       <main className="pt-20">
-        <section 
+        {/* Hero is fully static — rendered in every state (loading/error/success)
+            so the single <h1> is always present in the server-rendered HTML. */}
+        <section
           className="relative py-24 lg:py-32 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/lovable-uploads/blog-hero-bg.jpg')`
@@ -82,6 +70,14 @@ export default function BlogPageClient() {
           </div>
         </section>
 
+        {error ? (
+          /* Error state — uses <h2> (NOT <h1>) so it never duplicates the hero h1 above. */
+          <section className="container mx-auto px-4 py-16 text-center">
+            <h2 className="text-3xl font-bold mb-4">Error Loading Blog</h2>
+            <p className="text-muted-foreground">{error}</p>
+          </section>
+        ) : (
+        <>
         <section className="py-4 md:py-8 bg-gradient-to-b from-muted/30 to-background">
           <div className="container mx-auto px-4">
             <div className="max-w-7xl mx-auto">
@@ -103,10 +99,10 @@ export default function BlogPageClient() {
         <section className="pb-8 md:pb-16 bg-gradient-to-b from-background to-muted/30">
           <div className="container mx-auto px-4">
             <div className="max-w-7xl mx-auto">
-              {isSearching ? (
+              {loading || isSearching ? (
                 <div className="text-center py-16">
                   <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-                  <p className="text-muted-foreground">Searching posts...</p>
+                  <p className="text-muted-foreground">{loading ? "Loading blog posts..." : "Searching posts..."}</p>
                 </div>
               ) : filteredPosts.length === 0 ? (
                 <div className="text-center py-16">
@@ -155,6 +151,8 @@ export default function BlogPageClient() {
             </div>
           </div>
         </section>
+        </>
+        )}
       </main>
     </div>
   );

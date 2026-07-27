@@ -164,7 +164,7 @@ export default function StoreLocatorExamples() {
         <section className="py-16 bg-muted/30" style={{ marginBottom: "10px" }}>
           <div className="container mx-auto px-6 max-w-7xl">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Store Locator Examples</h2>
+              <h1 className="text-3xl md:text-4xl font-bold mb-4">Store Locator Examples</h1>
               <p className="text-lg text-muted-foreground max-w-4xl mx-auto mb-8">
                 Looking for inspiration on how different brands use store locators? Here are some real examples from businesses across industries. 
                 Each of these companies has created a simple, user-friendly store locator to help customers find products and services near them.
