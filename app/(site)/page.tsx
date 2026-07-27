@@ -1,5 +1,4 @@
 import dynamic from "next/dynamic";
-import Script from "next/script";
 import { pageSeo } from "@/lib/seo";
 import HeroSection from "@/components/HeroSection";
 import CustomizeSection from "@/components/CustomizeSection";
@@ -66,7 +65,9 @@ export default function Page() {
         "url": "https://www.storelocator.in/",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://www.storelocator.in/path-to-your-logo.png"
+          "url": "https://www.storelocator.in/lovable-uploads/e38b2a7e-a356-4be7-a266-c52662189454.png",
+          "width": 1200,
+          "height": 1200
         }
       },
       {
@@ -85,13 +86,13 @@ export default function Page() {
 
   return (
     <div className="min-h-screen">
-      {/* JSON-LD Schema - Loaded with Script component for better performance */}
-      <Script
-        id="homepage-schema"
-          type="application/ld+json"
-        strategy="afterInteractive"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(homePageSchema) }}
-        />
+      {/* Server-rendered JSON-LD so all crawlers (not just JS-rendering ones)
+          see the WebSite/Organization/WebPage schema — and its logo — in the
+          initial HTML. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homePageSchema) }}
+      />
       <main>
         <div className="my-[15px]">
           <HeroSection />
