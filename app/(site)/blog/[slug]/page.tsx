@@ -3,6 +3,7 @@ import BlogDetailPage from "@/components/blog/BlogDetailPage";
 import { prisma } from "@/lib/db";
 import { pageSeo } from "@/lib/seo";
 import { buildBlogPostingSchema } from "@/lib/blog-schema";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 // Force dynamic rendering to ensure schema updates appear immediately
 // This prevents static generation caching that would hide schema updates
@@ -70,6 +71,15 @@ export default async function BlogPostPage({ params }: Params) {
 
   return (
     <>
+      {data && (
+        <BreadcrumbJsonLd
+          items={[
+            { name: "Home", path: "/" },
+            { name: "Blog", path: "/blog" },
+            { name: data.title, path: `/blog/${slug}` },
+          ]}
+        />
+      )}
       {autoPostingSchema && (
         <script
           type="application/ld+json"

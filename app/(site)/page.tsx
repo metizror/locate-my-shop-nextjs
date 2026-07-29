@@ -2,6 +2,7 @@ import dynamic from "next/dynamic";
 import { pageSeo } from "@/lib/seo";
 import { prisma } from "@/lib/db";
 import { deriveExcerpt } from "@/lib/text";
+import { testimonials } from "@/lib/testimonials";
 import HeroSection from "@/components/HeroSection";
 import CustomizeSection from "@/components/CustomizeSection";
 
@@ -83,6 +84,23 @@ export default async function Page() {
   const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined;
   const baseUrl = siteUrlFromEnv || vercelUrl || 'http://localhost:3000';
 
+  // Reviews + aggregate rating derived from the homepage testimonials.
+  const reviewCount = testimonials.length;
+  const ratingValue = (
+    testimonials.reduce((sum, t) => sum + t.rating, 0) / reviewCount
+  ).toFixed(1);
+  const orgReviews = testimonials.map((t) => ({
+    "@type": "Review",
+    "author": { "@type": "Person", "name": t.name },
+    "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": String(t.rating),
+      "bestRating": "5",
+      "worstRating": "1",
+    },
+    "reviewBody": t.content,
+  }));
+
   const homePageSchema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -107,7 +125,18 @@ export default async function Page() {
           "url": "https://www.storelocator.in/lovable-uploads/e38b2a7e-a356-4be7-a266-c52662189454.png",
           "width": 1200,
           "height": 1200
-        }
+        },
+        "sameAs": [
+          "https://apps.shopify.com/store-locator-by-metizsoft"
+        ],
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": ratingValue,
+          "reviewCount": reviewCount,
+          "bestRating": "5",
+          "worstRating": "1"
+        },
+        "review": orgReviews
       },
       {
         "@type": "WebPage",

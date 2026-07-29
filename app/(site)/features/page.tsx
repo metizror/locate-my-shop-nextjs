@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { Metadata } from "next";
 import Link from "next/link";
 import { pageSeo } from "@/lib/seo";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = pageSeo({
   title: "Best Shopify Store Locator App - Find Stores Easily | Metizsoft",
@@ -57,6 +58,7 @@ export default function FeaturesPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", path: "/" }, { name: "Features", path: "/features" }]} />
       <section className="py-16 lg:py-24 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
         <div className="container mx-auto px-6 max-w-4xl text-center">
           <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-6">MSPL Store Locator App Features</h1>

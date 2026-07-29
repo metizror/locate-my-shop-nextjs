@@ -3,6 +3,7 @@ import BlogPageClient from "./BlogPageClient";
 import { pageSeo } from "@/lib/seo";
 import { prisma } from "@/lib/db";
 import { buildBlogSchema } from "@/lib/blog-schema";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 const BLOG_NAME = "Store Locator Blog";
 const BLOG_DESCRIPTION =
@@ -31,6 +32,7 @@ export default async function BlogPage() {
 
   return (
     <>
+      <BreadcrumbJsonLd items={[{ name: "Home", path: "/" }, { name: "Blog", path: "/blog" }]} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogSchema) }}

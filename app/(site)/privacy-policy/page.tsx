@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { pageSeo } from "@/lib/seo";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = pageSeo({
   title: "MSPL Store Locator – Privacy Policy",
@@ -11,6 +12,7 @@ export const metadata: Metadata = pageSeo({
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-background">
+      <BreadcrumbJsonLd items={[{ name: "Home", path: "/" }, { name: "Privacy Policy", path: "/privacy-policy" }]} />
       <article className="container mx-auto px-4 py-12 lg:py-20 ">
         <header className="mb-12">
           <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
