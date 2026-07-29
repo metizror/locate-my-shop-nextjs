@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { pageSeo } from "@/lib/seo";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = pageSeo({
   title: "Best Store Locator Layout Examples & Designs",
@@ -84,6 +85,7 @@ const layoutStyles = [
 export default function StoreLocatorLayout() {
   return (
     <div className="min-h-screen">
+      <BreadcrumbJsonLd items={[{ name: "Home", path: "/" }, { name: "Store Locator Layout", path: "/store-locator-layout" }]} />
       <main className="pt-20">
         <section className="py-8 md:py-12 lg:py-16 bg-gradient-to-b from-background to-muted/30" style={{ marginBottom: "10px" }}>
           <div className="container mx-auto px-4 md:px-6 max-w-7xl">

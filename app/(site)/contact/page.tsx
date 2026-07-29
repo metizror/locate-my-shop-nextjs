@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import ContactPageClient from "./ContactPageClient";
 import { pageSeo } from "@/lib/seo";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = pageSeo({
   title: "Contact Us - Best Store Locator App",
@@ -9,6 +10,11 @@ export const metadata: Metadata = pageSeo({
 });
 
 export default function ContactPage() {
-  return <ContactPageClient />;
+  return (
+    <>
+      <BreadcrumbJsonLd items={[{ name: "Home", path: "/" }, { name: "Contact", path: "/contact" }]} />
+      <ContactPageClient />
+    </>
+  );
 }
 

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { pageSeo } from "@/lib/seo";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 
 export const metadata: Metadata = pageSeo({
   title: "Best Store Locator Examples with Maps",
@@ -148,6 +149,7 @@ const storeExamples = [
 export default function StoreLocatorExamples() {
   return (
     <div className="min-h-screen">
+      <BreadcrumbJsonLd items={[{ name: "Home", path: "/" }, { name: "Store Locator Examples", path: "/store-locator-examples" }]} />
       <main className="pt-20">
         <section className="py-16 bg-muted/30" style={{ marginBottom: "10px" }}>
           <div className="container mx-auto px-6 max-w-7xl">
@@ -172,9 +174,9 @@ export default function StoreLocatorExamples() {
                     <div className="flex flex-col lg:flex-row gap-8">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-4">
-                          <h3 className="text-2xl font-bold">
+                          <h2 className="text-2xl font-bold">
                             {index + 1}. {example.name}
-                          </h3>
+                          </h2>
                           <Button variant="outline" size="sm" asChild>
                             <a href={example.url} target="_blank" rel="noopener noreferrer">
                               Try It <ExternalLink className="ml-2 h-4 w-4" />
@@ -185,7 +187,7 @@ export default function StoreLocatorExamples() {
                         <p className="text-muted-foreground mb-6">{example.description}</p>
 
                         <div>
-                          <h4 className="font-semibold mb-3">Key Features:</h4>
+                          <h3 className="font-semibold mb-3">Key Features:</h3>
                           <ul className="space-y-2">
                             {example.features.map((feature) => (
                               <li key={feature} className="flex items-start gap-2">
@@ -218,7 +220,7 @@ export default function StoreLocatorExamples() {
 
             <div className="mt-16 text-center">
               <Card className="p-8 bg-primary/5">
-                <h3 className="text-2xl font-bold mb-4">Ready to Create Your Own Store Locator?</h3>
+                <h2 className="text-2xl font-bold mb-4">Ready to Create Your Own Store Locator?</h2>
                 <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
                   Join thousands of businesses that trust MSPL Store Locator to help their customers find them. 
                   Get started today with our easy-to-use platform and customizable design options.

@@ -91,7 +91,7 @@ const Footer = () => {
 
           {/* Product Links */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-foreground">Product</h4>
+            <h3 className="font-semibold text-foreground">Product</h3>
             <ul className="space-y-2">
               {footerLinks.product.map((link) => (
                 <li key={link.label}>
@@ -117,7 +117,7 @@ const Footer = () => {
 
           {/* Features Links */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-foreground">Features</h4>
+            <h3 className="font-semibold text-foreground">Features</h3>
             <ul className="space-y-2">
               {footerLinks.features.map((link) => (
                 <li key={link.label}>
@@ -143,7 +143,7 @@ const Footer = () => {
 
           {/* Platforms Links */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-foreground">Platforms</h4>
+            <h3 className="font-semibold text-foreground">Platforms</h3>
             <ul className="space-y-2">
               {footerLinks.platforms.map((link) => (
                 <li key={link.label}>
@@ -169,7 +169,7 @@ const Footer = () => {
 
           {/* Developers Links */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-foreground">Developers</h4>
+            <h3 className="font-semibold text-foreground">Developers</h3>
             <ul className="space-y-2">
               {footerLinks.developers.map((link) => (
                 <li key={link.label}>
@@ -195,7 +195,7 @@ const Footer = () => {
 
           {/* Resources Links */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-foreground">Resources</h4>
+            <h3 className="font-semibold text-foreground">Resources</h3>
             <ul className="space-y-2">
               {footerLinks.resources.slice(0, 4).map((link) => (
                 <li key={link.label}>
